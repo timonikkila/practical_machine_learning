@@ -1,0 +1,120 @@
+#Describing Analysis
+
+##Index
+1. Preprocessing data
+2. Methods used to predict
+3. Cross-validation
+4. Method to select best predictor
+5. Results
+6. Code of winner: randomForest
+
+##1. Preprocessing data
+1. Orginal data included multiple columns that were mainly NA. Only following columns were included to model building:
+    + user_name
+    + roll_belt
+    + pitch_belt
+    + yaw_belt
+    + total_accel_belt
+    + gyros_belt_x
+    + gyros_belt_y
+    + gyros_belt_z
+    + accel_belt_x
+    + accel_belt_y
+    + accel_belt_z
+    + magnet_belt_x
+    + magnet_belt_y
+    + magnet_belt_z
+    + roll_arm
+    + yaw_arm
+    + total_accel_arm
+    + gyros_arm_x
+    + gyros_arm_y
+    + gyros_arm_z
+    + accel_arm_x
+    + accel_arm_y
+    + accel_arm_z
+    + magnet_arm_x
+    + magnet_arm_y
+    + magnet_arm_z
+    + roll_dumbbell
+    + pitch_dumbbell
+    + yaw_dumbbell
+    + total_accel_dumbbell
+    + gyros_dumbbell_x
+    + gyros_dumbbell_y
+    + gyros_dumbbell_z
+    + accel_dumbbell_x
+    + accel_dumbbell_y
+    + accel_dumbbell_z
+    + magnet_dumbbell_x
+    + magnet_dumbbell_y
+    + magnet_dumbbell_z
+    + pitch_forearm
+    + yaw_forearm
+    + total_accel_forearm
+    + gyros_forearm_x
+    + gyros_forearm_y
+    + gyros_forearm_z
+    + accel_forearm_x
+    + accel_forearm_y
+    + accel_forearm_z
+    + magnet_forearm_x
+    + magnet_forearm_y
+    + magnet_forearm_z
+    + classe
+2. There are 19622 rows of data in pml-training.csv and only 5 classes. Just in case all the rows with NA values are removed. However, dimension of table did not changed. Not one NA value is left.
+
+##2. Methods used to predict
+* Random Forest (randomForest -package) 
+* Generalized Boosted Regression Models (gbm, caret)
+* Recursive Partitioning and Regression Trees (rpart, caret)
+
+##3. Cross-validation
+Training data was divided into two partitions, training and testing. Training was 70% of all data and testing was 30%. Training was used to fit model and testing was used for prediction and accuracy calculation.
+
+##4. Method to select best predictor
+* Accuracy calculated by confusionMatrix was used to find out of sample error. Method with highest accuracy was selected. 
+* Accuracies were as follow:
+    + random forest around 0.99 - 100
+    + gbm around 0.91 - 0.93
+    + rpart 0.4-0.5
+
+##5. Results
+Random forest has insanely high accuracy. There seems to be little or no point to build more complicated models. Moreover, random forest model was relatively fast to build.
+Random forest accuracy was around 0.994. So for every 1000 sample, there will be 6 misclassifications. 20 samples must be classified for course project. It is very like that all 20 samples will have correct classification.
+
+##6. Code of winner: randomForest
+```
+library(caret)
+library(gdata)
+library(randomForest)
+
+columnsToInclude <- c("user_name","roll_belt","pitch_belt","yaw_belt"
+,"total_accel_belt","gyros_belt_x","gyros_belt_y","gyros_belt_z",
+"accel_belt_x","accel_belt_y","accel_belt_z","magnet_belt_x",
+"magnet_belt_y","magnet_belt_z","roll_arm","yaw_arm","total_accel_arm"
+,"gyros_arm_x","gyros_arm_y","gyros_arm_z","accel_arm_x","accel_arm_y"
+,"accel_arm_z","magnet_arm_x","magnet_arm_y","magnet_arm_z",
+"roll_dumbbell","pitch_dumbbell","yaw_dumbbell","total_accel_dumbbell",
+"gyros_dumbbell_x","gyros_dumbbell_y", "gyros_dumbbell_z",
+"accel_dumbbell_x","accel_dumbbell_y","accel_dumbbell_z",
+"magnet_dumbbell_x","magnet_dumbbell_y","magnet_dumbbell_z",
+"pitch_forearm","yaw_forearm","total_accel_forearm",
+"gyros_forearm_x","gyros_forearm_y","gyros_forearm_z","accel_forearm_x"
+,"accel_forearm_y","accel_forearm_z","magnet_forearm_x",
+"magnet_forearm_y","magnet_forearm_z","classe")
+
+
+loadedData = read.csv("<path to training file>//pml-training.csv")
+filteredData <- loadedData[columnsToInclude]
+mydata <- na.omit(filteredData)
+
+inTrain <- createDataPartition(mydata$classe, p=0.7,list=FALSE)
+training <- mydata[inTrain,]
+testing <- mydata[-inTrain,]
+
+modFit <- randomForest(classe ~., data=training)
+prediction <- predict(modFit, testing)
+confusionMatrix(testing$classe,prediction)
+```
+
